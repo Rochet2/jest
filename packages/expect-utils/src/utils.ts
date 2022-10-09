@@ -123,7 +123,18 @@ export const getObjectSubset = (
     const trimmed: any = {};
     seenReferences.set(object, trimmed);
 
-    Object.keys(object)
+    const keys = Object.keys(object);
+    {
+      let prototype = Object.getPrototypeOf(object);
+      while (prototype !== null) {
+        const propertyDescriptors = Object.getOwnPropertyDescriptors(prototype);
+        const getters = Object.keys(propertyDescriptors).filter(k => propertyDescriptors[k].get);
+        keys.push(...getters);
+        prototype = Object.getPrototypeOf(prototype);
+      }
+    }
+
+    [...new Set(keys)]
       .filter(key => hasPropertyInObject(subset, key))
       .forEach(key => {
         trimmed[key] = seenReferences.has(object[key])
